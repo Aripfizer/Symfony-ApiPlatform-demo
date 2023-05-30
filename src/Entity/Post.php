@@ -3,25 +3,39 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Post as MetadataPost;
+use ApiPlatform\Metadata\Put;
+use App\Controller\CreatePost;
+use App\Controller\CreatePostPublication;
 use App\Controller\GetAllPostsByCategory;
+use App\Controller\PostPublishController;
 use App\Repository\PostRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
-#[ApiResource()]
-#[ApiResource(
+#[ApiResource]
+#[GetCollection()]
+#[GetCollection(
+    security: "is_granted(ROLE_USER)",
     uriTemplate: '/category/{categoryId}/posts',
     uriVariables: [
         'categoryId' => new Link(fromClass: Category::class, toProperty: 'category'),
     ],
     controller: GetAllPostsByCategory::class,
-    operations: [new GetCollection()]
 )]
+
+#[MetadataPost(
+    uriTemplate: '/post/{postId}/publish',
+    controller: CreatePostPublication::class,
+)]
+
 class Post
 {
+    /** L'Id de la publication */
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
