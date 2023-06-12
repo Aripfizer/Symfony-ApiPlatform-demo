@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -12,26 +14,41 @@ use App\Controller\CreatePost;
 use App\Controller\CreatePostPublication;
 use App\Controller\GetAllPostsByCategory;
 use App\Controller\PostPublishController;
+use App\Dto\GetPostDto;
 use App\Repository\PostRepository;
+use App\State\PostStateProvider;
 use Doctrine\ORM\Mapping as ORM;
 
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
-#[ApiResource]
-#[GetCollection()]
-#[GetCollection(
-    security: "is_granted(ROLE_USER)",
-    uriTemplate: '/category/{categoryId}/posts',
-    uriVariables: [
-        'categoryId' => new Link(fromClass: Category::class, toProperty: 'category'),
-    ],
-    controller: GetAllPostsByCategory::class,
-)]
+#[
+    ApiResource(
+        operations: [
+            new Get(output: GetPostDto::class, provider: PostStateProvider::class),
+            new GetCollection(),
+        ]
+    ),
+    ApiFilter(
+        SearchFilter::class,
+        properties: [
+            'title' => SearchFilter::STRATEGY_PARTIAL
+        ]
+    )
+]
+// #[GetCollection()]
+// #[GetCollection(
+//     security: "is_granted(ROLE_USER)",
+//     uriTemplate: '/category/{categoryId}/posts',
+//     uriVariables: [
+//         'categoryId' => new Link(fromClass: Category::class, toProperty: 'category'),
+//     ],
+//     controller: GetAllPostsByCategory::class,
+// )]
 
-#[MetadataPost(
-    uriTemplate: '/post/{postId}/publish',
-    controller: CreatePostPublication::class,
-)]
+// #[MetadataPost(
+//     uriTemplate: '/post/{postId}/publish',
+//     controller: CreatePostPublication::class,
+// )]
 
 class Post
 {
